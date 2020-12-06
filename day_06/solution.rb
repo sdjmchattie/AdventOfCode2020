@@ -1,18 +1,10 @@
 #!/usr/bin/env ruby
 
+require_relative '../lib/file_parser.rb'
 require 'set'
 
-yes_answers = File.readlines('input.txt').reduce(['']) do |data, line|
-  line.strip!
-
-  if line.length == 0
-    data << ''
-  else
-    last_data = data.pop
-    last_data += ' ' + line
-    data.push(last_data.strip)
-  end
-end
+file_parser = FileParser.new('input.txt')
+yes_answers = file_parser.read_chunked_data
 
 unique_answers = yes_answers.map { |answer| answer.chars.uniq }
 unique_counts = unique_answers.map { |a| a.reject { |c| c == ' '}.count }

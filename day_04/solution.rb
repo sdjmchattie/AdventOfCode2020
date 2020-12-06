@@ -1,16 +1,9 @@
 #!/usr/bin/env ruby
 
-serialised_passports = File.readlines('input.txt').reduce(['']) do |data, line|
-  line.strip!
+require_relative '../lib/file_parser.rb'
 
-  if line.length == 0
-    data << ''
-  else
-    last_data = data.pop
-    last_data += ' ' + line
-    data.push(last_data.strip)
-  end
-end
+file_parser = FileParser.new('input.txt')
+serialised_passports = file_parser.read_chunked_data
 
 passports = serialised_passports.map do |serial_data|
   serial_data.split(' ').map { |kv| kv.split(':') }.to_h

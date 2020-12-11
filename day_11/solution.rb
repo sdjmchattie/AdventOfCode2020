@@ -1,7 +1,5 @@
 #!/usr/bin/env ruby
 
-raw_input = File.readlines('input.txt')
-
 def neighbour_seats(all_seats, x, y)
   neighbours = []
   ((y-1)..(y+1)).each do |ny|
@@ -62,59 +60,43 @@ def new_seat_state(adjacent_seats, current_state, occupant_tolerance)
   end
 end
 
-states = [raw_input.reject { |i| i.length == 0 }.map(&:chars)]
-loop do
-  previous_state = states.last
-  new_state = []
+def run_to_final_state(initial_state, neighbour_function, occupant_tolerance)
+  previous_state = initial_state
 
-  previous_state.each_with_index do |row, y|
-    new_row = []
-    row.count.times do |x|
-      new_row << new_seat_state(
-        neighbour_seats(previous_state, x, y),
-        previous_state[y][x], 4)
+  loop do
+    new_state = []
+
+    previous_state.each_with_index do |row, y|
+      new_row = []
+      row.count.times do |x|
+        new_row << new_seat_state(
+          method(neighbour_function).call(previous_state, x, y),
+          previous_state[y][x],
+          occupant_tolerance)
+      end
+
+      new_state << new_row
     end
 
-    new_state << new_row
+    break if previous_state == new_state
+    previous_state = new_state
   end
 
-  break if previous_state == new_state
-
-  states << new_state
+  return previous_state
 end
 
-occupied_seats = states.last.map do |row|
-  row.count { |s| s == '#' }
-end.sum
+raw_input = File.readlines('input.txt')
+initial_state = raw_input.reject { |i| i.length == 0 }.map(&:chars)
+
+final_state = run_to_final_state(initial_state, :neighbour_seats, 4)
 
 puts 'Part 1'
-puts "  Number of occupied seats is #{occupied_seats}"
+puts "  Number of occupied seats is " +
+  final_state.map { |r| r.count { |s| s == '#' } }.sum.to_s
 
-states = [raw_input.reject { |i| i.length == 0 }.map(&:chars)]
-loop do
-  previous_state = states.last
-  new_state = []
-
-  previous_state.each_with_index do |row, y|
-    new_row = []
-    row.count.times do |x|
-      new_row << new_seat_state(
-        visible_seats(previous_state, x, y),
-        previous_state[y][x], 5)
-    end
-
-    new_state << new_row
-  end
-
-  break if previous_state == new_state
-
-  states << new_state
-end
-
-occupied_seats = states.last.map do |row|
-  row.count { |s| s == '#' }
-end.sum
+final_state = run_to_final_state(initial_state, :visible_seats, 5)
 
 puts
 puts 'Part 2'
-puts "  Number of occupied seats is #{occupied_seats}"
+puts "  Number of occupied seats is " +
+  final_state.map { |r| r.count { |s| s == '#' } }.sum.to_s

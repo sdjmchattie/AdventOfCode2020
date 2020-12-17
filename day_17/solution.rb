@@ -2,10 +2,11 @@
 
 class Game
 
-  attr_reader :dimensions
+  attr_reader :dimensions, :max_cycles
 
   def initialize(initial_state, max_cycles, dimensions)
     self.dimensions = dimensions
+    self.max_cycles = max_cycles
     self.states = [ create_state(initial_state, max_cycles) ]
   end
 
@@ -13,18 +14,25 @@ class Game
     Marshal.load(Marshal.dump(states.last))
   end
 
-  def map_state(state, indices)
+  def map_state(state, indices, out_of_bounds = false)
     if indices.count == self.dimensions
+      return '.' if out_of_bounds
       active = active_neighbours(indices)
       case state
       when '.'
-        active == 3 ? '#' : '.'
+        return active == 3 ? '#' : '.'
       when '#'
-        (active == 2 || active == 3) ? '#' : '.'
+        return (active == 2 || active == 3) ? '#' : '.'
       end
     else
+      min_idx = self.max_cycles - states.count
+      max_idx = state.count - min_idx - 1
       state.each_with_index.map do |next_state, idx|
-        map_state(next_state, indices + [idx])
+
+        map_state(
+          next_state,
+          indices + [idx],
+          out_of_bounds || idx < min_idx || idx > max_idx)
       end
     end
   end
@@ -39,7 +47,7 @@ class Game
 private
 
   attr_accessor :states
-  attr_writer :dimensions
+  attr_writer :dimensions, :max_cycles
 
   def create_dimension(number, length, initial_x, initial_y)
     return '.' if number == 0
@@ -78,7 +86,7 @@ private
     state
   end
 
-  def active_count(state, indices, deltas)
+  def active_count(state, indices, deltas = Array.new)
     if indices.count == 0
       return state == '#' && !deltas.all? { |d| d == 0 } ? 1 : 0
     end
@@ -91,7 +99,7 @@ private
   end
 
   def active_neighbours(indices)
-    active_count(self.current_state, indices, Array.new)
+    active_count(self.current_state, indices)
   end
 
 end
@@ -126,4 +134,4 @@ active_count = game.current_state.reduce(0) do |tot_z, layer|
 end
 
 puts
-puts "  Answer goes here."
+puts "  Active cubes after 6 cycles = #{active_count}"

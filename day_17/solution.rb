@@ -112,11 +112,7 @@ puts 'Part 1'
 game = Game.new(clean_input, 6, 3)
 game.run_cycle(6)
 
-active_count = game.current_state.reduce(0) do |tot_z, layer|
-  tot_z + layer.reduce(0) do |tot_y, row|
-    tot_y + row.count { |cube| cube == '#' }
-  end
-end
+active_count = game.current_state.flatten.count { |cube| cube == '#' }
 
 puts
 puts "  Active cubes after 6 cycles = #{active_count}"
@@ -127,11 +123,7 @@ puts 'Part 2'
 game = Game.new(clean_input, 6, 4)
 game.run_cycle(6)
 
-active_count = game.current_state.reduce(0) do |tot_z, layer|
-  tot_z + layer.reduce(0) do |tot_y, row|
-    tot_y + row.count { |cube| cube == '#' }
-  end
-end
+active_count = game.current_state.flatten.count { |cube| cube == '#' }
 
 puts
 puts "  Active cubes after 6 cycles = #{active_count}"

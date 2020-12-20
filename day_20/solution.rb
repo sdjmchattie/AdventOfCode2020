@@ -83,7 +83,8 @@ end
 # Pieces returned here are orientated as the top left piece in a jigsaw.
 corners = tiles.map do |tile|
   other_tile_edge_checksums = tiles.reject { |t| t == tile }.flat_map do |other|
-    other.edges.values.flatten.map(&:reverse_checksum)
+    other.edges[:no_flip].map(&:reverse_checksum) +
+        other.edges[:flip_xy].map(&:reverse_checksum)
   end.uniq
 
   flip_rotation_combos = tile.edges.flat_map do |flip, edges|
@@ -107,8 +108,35 @@ tile_id_product = corner_tile_ids.reduce(&:*)
 
 puts 'Part 1'
 puts "  Product of corner tile IDs is #{tile_id_product}"
+puts
 
+non_corners = tiles.reject { |tile| corners.keys.include? tile }
+puzzle = Array.new(12, Array.new(12))
 
+# Establish contents for top edge of puzzle.  It doesn't matter which corner we
+# start with as the final image could need rotation or flipping anyway.
+# Let's assume the first piece's orientation for simplicity.
+top_left = corners.keys.first
+tl_flip, tl_rotate = corners[top_left][0]
+right_checksums = [ top_left.edges[tl_flip][(5 - tl_rotate) % 4].checksum ]
+
+non_corner_edge_checksums = non_corners.flat_map do |other|
+  [
+    other.id,
+    other.edges[:no_flip].map(&:reverse_checksum),
+    other.edges[:flip_xy].map(&:reverse_checksum)
+  ]
+end
+
+right_checksums.each do |rcs|
+  edge_tile = non_corners.find do |other|
+    left_sums = other.edges[:no_flip].map(&:reverse_checksum) +
+        other.edges[:flip_xy].map(&:reverse_checksum)
+    left_sums.include? rcs
+  end
+
+  puts edge_tile.id
+end
 
 puts
 puts 'Part 2'

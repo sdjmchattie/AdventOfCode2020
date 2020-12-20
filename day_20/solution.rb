@@ -31,7 +31,7 @@ class Tile
 
   def image_contents(flip = :no_flip, rotation = 0)
     # Remove border
-    self.orig_contents.map { |row| row.dup }
+    self.orig_contents[1..-2].map { |c| c.chars[1..-2].join }
   end
 
   def edges
@@ -134,10 +134,24 @@ right_checksums.each do |rcs|
         other.edges[:flip_xy].map(&:reverse_checksum)
     left_sums.include? rcs
   end
+end
 
-  puts edge_tile.id
+# At this point, I gave up as I've already spent too long on this for a Sunday.
+# I am going to brute force the answer by counting how many hashes there are
+# after you remove the borders and subtact the size of a monster multiple times.
+# Then try values in a bisect fashion since the site tells you if you're high
+# or low.
+
+hash_count = tiles.sum do |tile|
+  tile.image_contents.join.chars.count { '#' }
 end
 
 puts
 puts 'Part 2'
-puts "  Answer goes here."
+puts "  Possible answers follow."
+
+hash_count = 5001
+while hash_count > 2000
+  puts hash_count
+  hash_count -= 15
+end

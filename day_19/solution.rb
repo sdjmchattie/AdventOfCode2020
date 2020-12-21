@@ -81,6 +81,14 @@ valid_message_count = messages.count { |msg| ok_messages.include? msg }
 puts 'Part 1'
 puts "  Number of valid messages is #{valid_message_count}"
 
+new_rule_map = rule_map.dup
+new_rule_map[8] = [[42], [42, 42], [42, 42, 42], [42, 42, 42, 42]]
+new_rule_map[11] = [[42, 31], [42, 42, 31, 31], [42, 42, 42, 31, 31, 31], [42, 42, 42, 42, 31, 31, 31, 31]]
+new_resolver = Resolver.new(new_rule_map)
+new_resolver.resolve
+new_ok_messages = new_resolver.resolved_rules[0]
+new_valid_message_count = messages.count { |msg| new_ok_messages.include? msg }
+
 puts
 puts 'Part 2'
-puts "  Answer goes here."
+puts "  Number of valid messages is #{new_valid_message_count}"

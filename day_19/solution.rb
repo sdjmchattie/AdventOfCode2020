@@ -73,22 +73,61 @@ rule_map = rules.map do |rule_text|
   next [m[1].to_i, [[m[2].to_i]]] unless m.nil?
 end.to_h
 
+puts 'Part 1'
+
+puts '  Resolving rules...'
 resolver = Resolver.new(rule_map)
 resolver.resolve
 ok_messages = resolver.resolved_rules[0]
-valid_message_count = messages.count { |msg| ok_messages.include? msg }
 
-puts 'Part 1'
+puts '  Rules resolved.  Now counting valid messages...'
+valid_messages = messages.select { |msg| ok_messages.include? msg }
+valid_message_count = valid_messages.count
+
 puts "  Number of valid messages is #{valid_message_count}"
-
-new_rule_map = rule_map.dup
-new_rule_map[8] = [[42], [42, 42], [42, 42, 42], [42, 42, 42, 42]]
-new_rule_map[11] = [[42, 31], [42, 42, 31, 31], [42, 42, 42, 31, 31, 31], [42, 42, 42, 42, 31, 31, 31, 31]]
-new_resolver = Resolver.new(new_rule_map)
-new_resolver.resolve
-new_ok_messages = new_resolver.resolved_rules[0]
-new_valid_message_count = messages.count { |msg| new_ok_messages.include? msg }
 
 puts
 puts 'Part 2'
-puts "  Number of valid messages is #{new_valid_message_count}"
+
+def matches_new_rules?(message, rule_42_messages, rule_31_messages)
+  count = 0
+
+  loop do
+    matching_msg = rule_42_messages.find do |rule_msg|
+      message.start_with? rule_msg
+    end
+
+    break if matching_msg.nil?
+
+    message = message[matching_msg.length..-1]
+    count += 1
+  end
+
+  # We must have at least one of rule 31 to be valid
+  # We must also have at least 2 of rule 42
+  return false if message.length == 0 || count < 2
+
+  while message.length > 0
+    matching_msg = rule_31_messages.find do |rule_msg|
+      message.start_with? rule_msg
+    end
+
+    return false if matching_msg.nil?
+
+    message = message[matching_msg.length..-1]
+    count -= 1
+  end
+
+  # We must have had at least one more 31 than we had 42s
+  return count > 0
+end
+
+puts '  Finding messages matching new rules.'
+other_messages = messages - valid_messages
+rule_31_messages = resolver.resolved_rules[31]
+rule_42_messages = resolver.resolved_rules[42]
+valid_for_new_rules = other_messages.select do |msg|
+  matches_new_rules?(msg, rule_42_messages, rule_31_messages)
+end
+
+puts "  Number of valid messages is #{valid_message_count + valid_for_new_rules.count}"

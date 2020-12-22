@@ -1,5 +1,7 @@
 #!/usr/bin/env ruby
 
+require 'Set'
+
 class Game
   attr_reader :winner, :score
 
@@ -12,17 +14,35 @@ class Game
     d1 = self.deck_1.dup
     d2 = self.deck_2.dup
 
-    while d1.count != 0 && d2.count != 0
-      card_1 = d1.shift
-      card_2 = d2.shift
-      if card_1 > card_2
-        d1 += [card_1, card_2]
+    previous_hashes = Set.new
+
+    loop do
+      new_hash = [d1, d2].hash
+      break if previous_hashes.include? new_hash
+      previous_hashes << new_hash
+
+      c1 = d1.shift
+      c2 = d2.shift
+
+      round_winner = 0
+      if recursive && d1.count >= c1 && d2.count >= c2
+        sub_game = Game.new(d1[0...c1], d2[0...c2])
+        sub_game.play
+        round_winner = sub_game.winner
       else
-        d2 += [card_2, card_1]
+        round_winner = c1 > c2 ? 1 : 2
       end
+
+      if round_winner == 1
+        d1 += [c1, c2]
+      else
+        d2 += [c2, c1]
+      end
+
+      break if d1.count == 0 || d2.count == 0
     end
 
-    self.winner = deck_1.count == 0 ? 2 : 1
+    self.winner = d1.count > 0 ? 1 : 2
     winners_deck = self.winner == 1 ? d1 : d2
 
     self.score = winners_deck.reverse.each_with_index.map { |card, idx| card * (idx + 1) }.sum
@@ -46,6 +66,9 @@ game.play
 puts 'Part 1'
 puts "  Winner's score is #{game.score}"
 
+recursive_game = Game.new(deck_1, deck_2)
+recursive_game.play(true)
+
 puts
 puts 'Part 2'
-puts "  Answer goes here."
+puts "  Winner's score is #{recursive_game.score}"
